@@ -1,0 +1,170 @@
+
+
+
+
+LatentView's Proven Semantic Layer Capability
+Reference Implementation for MetLife
+
+
+Prepared for: Leadership Meeting with Carlos Antollini
+(Global Director of BI Strategy, Platforms and Analytics) and Suresh
+April 27, 2025
+
+
+Prepared by LatentView Analytics
+ 
+MetLife is seeking a strategic partner to implement a Semantic Layer vision and framework. Parag Naik emphasized that MetLife wants a partner who brings high-level thought process, insurance domain expertise, quantifiable impact, and a vision for transforming static reporting into a dynamic, self-service "Amazon-like" data shopping experience for internal customers.
+
+What follows is a detailed account of two production implementations at Blue Shield of California — Member DNA (a 635+ feature Semantic Layer / Feature Repository) and Contract Codification (an AI-powered document intelligence platform processing 10,329 PDFs) — that directly address each of MetLife's requirements.
+
+1. Strategic Partnership Credential: We Architect Enterprise Data Ecosystems
+At Blue Shield of California, LatentView designed and delivered Member DNA — a production-grade, enterprise-scale Semantic Layer / Feature Repository that serves as the single source of truth for all member analytics across the organization. This is not a one-off report or a dashboard; it is a foundational data product that fundamentally changed how 10+ business teams consume member data.
+What we architected:
+•	A Medallion Architecture (Bronze → Silver → Gold) on Azure Databricks with Unity Catalog governance, deployed across 4 environments (dev, qa, stage, prod) with full CI/CD via Databricks Asset Bundles and Azure DevOps.
+•	A metadata-driven framework where adding or removing data sources and features requires only JSON configuration changes — no code refactoring. The pipeline reads transformation instructions from 18+ config files that control ingestion, transformations, quality gates, and output targets.
+•	7 heterogeneous source integrations unified into a single schema: Netezza (legacy on-prem), Snowflake (FACETS claims), Reltio (MDM/golden record), IHR (Integrated Health Record), SDM (Service Data Mart), DXCG (risk scoring engine), and CCM (Care Case Management).
+•	A daily automated orchestration of 20+ dependent tasks with conditional quality checkpoints — the pipeline halts gracefully if data quality thresholds are breached.
+
+Why this matters for MetLife: This demonstrates LatentView's ability to think architecturally, not just execute. We defined the semantic model, chose the right abstraction layers, designed for extensibility, and delivered a platform that scales with business needs — exactly the "high-level thought process and framework" Parag is asking for.
+2. Data Shopping Experience: From "Ask IT" to Self-Serve Analytics
+Member DNA delivers precisely the "Amazon-like data shopping experience" MetLife envisions.
+Before Member DNA:
+•	Analysts had to query 7+ separate systems to assemble a complete member view.
+•	Each team maintained its own definitions of LOB, member months, and cost metrics — conflicting numbers across reports.
+•	Getting a new feature or data point for a model took weeks of ETL development.
+After Member DNA — The "Data Storefront":
+•	One table, 635+ pre-computed features per member-period — the Gold "wide table" provides a denormalized, analytics-ready dataset where every row is one member for one study period.
+•	Business teams select what they need without writing SQL against raw source tables. Need cost PMPM by LOB? It's a column. Need BISG-imputed race/ethnicity? It's a column.
+•	10 levels of LOB hierarchy (LOB1 through LOB10 with aliases) aligned to finance definitions.
+•	Both wide and tall table formats — wide table for dashboarding/BI; tall/normalized table for data scientists.
+•	Snowflake export integration — Gold tables automatically pushed to Snowflake for downstream consumers.
+
+The 635+ features organized by business domain:
+Domain	Features	Examples
+Demographics & Enrollment	60+	DOB, age, gender, address (5 types), LOB (10-level hierarchy), PCP/IPA, group/subgroup
+Cost & Utilization	170+	FIP/FOP/Prof/Rx costs, allowed/billed/paid, PMPM, utilization counts, expenditure %
+Clinical Risk & Conditions	50+	DXCG v6 concurrent/prospective risk scores, 31 ACHCC categories, condition flags
+Pharmacy & Adherence	30+	PDC for 6 drug classes, fill counts, adherence flags (80% threshold)
+SDOH & Health Equity	100+	BISG race/ethnicity (6 categories), SVI index, ADI rankings, SDOH indicators
+Inpatient Events	30+	Admissions, LOS, readmission indicators, ICU/CCU/psych/detox days
+Benefits Coverage	28+	Maternity, mental health, preventive care, prescription drugs, skilled nursing
+Care Management	9	Shield Support/Advocate/Concierge, prenatal program, targeted CM, NurseHelp
+Contact & Digital	40+	Geocoded addresses (lat/long, FIPS, census tract), emails, phone numbers
+3. Insurance-Specific Use Cases: Customer Enrollment Optimization and Beyond
+Customer Enrollment Use Case:
+•	Member months by product line (medical, dental, vision, pharmacy, life) — enabling enrollment trend analysis.
+•	Current plan tenure and lifetime member months — identifying at-risk members for retention.
+•	Study period windowing — each member's data computed per rolling study period with current study period and snapshot flags.
+•	LOB mapping validated against finance reports (99% accuracy) — ensuring enrollment counts match financial reporting.
+•	Multi-product indicators (dental, vision, pharmacy, life flags) — enabling cross-sell/upsell analysis.
+
+Stop-Loss & Cost Prediction:
+The cost module computes FIP/FOP/Professional/Rx costs with allowed amounts, PMPM normalization, and expenditure percentages. Combined with DXCG prospective risk scores, this directly feeds models to predict members likely to exceed stop-loss thresholds.
+High-Risk Case Management (HRCM):
+31 ACHCC clinical condition categories + concurrent/prospective risk scores + care management indicators (9 program enrollment flags) enable identification of members with the highest utilization.
+Health Equity & BISG:
+A production BISG module uses census surname data, first-name probability data, and census block-group demographics to impute race/ethnicity with posterior probabilities across 6 categories. Integrated with SVI and ADI indices.
+Medication Adherence:
+PDC (Proportion of Days Covered) calculations for 6 chronic drug classes with an 80% adherence threshold flag — supporting quality measures and care gap identification.
+4. Quantifiable Impact: Theory to Implementation
+Metric	Result
+Data Consumption Turnaround	50% reduction — Teams now query one table instead of 7 sources
+Member LOB Mapping Accuracy	99% — Validated against finance reports
+Client Confidence → Revenue	New resource + new SOW valued at $52.5K
+Feature Scale	635+ data points per member-period — comprehensive 360° view
+Source Consolidation	7 disparate systems → 1 governed dataset with daily refresh
+Quality Assurance	Automated quality gates: count validation, schema checks, duplicate checks, conditional halts
+Extensibility	Added BISG, ArcGIS wildfire mapping, IFP retention, clinical dashboards on same foundation
+Operational Reliability	Daily pipeline (20+ tasks) with incremental CDC, retry logic, execution monitoring
+
+Downstream Use Cases Enabled:
+•	Stop-Loss Prediction — Predict healthcare costs exceeding thresholds
+•	HRCM — Identify highest-utilization members for proactive case management
+•	BISG for Health Equity — Impute race/ethnicity for disparity analysis
+•	ArcGIS Emergency Response — Map member locations to wildfire/evacuation zones
+•	IFP Retention — Identify members likely to churn for targeted interventions
+•	Clinical Dashboards — Complex Care Program and Risk Adjustment dashboards
+•	DataScout — AI-powered self-service analytics for ad-hoc business questions
+5. Mapping to MetLife's 5 Strategic Themes
+•	Semantic Layer Vision → Built a production semantic layer with 635+ governed, business-aligned features.
+•	Self-Service Data → Delivered the "data storefront" where business teams query one table instead of 7 systems.
+•	Domain Expertise → Healthcare-specific features: clinical conditions, risk scores, medication adherence, SDOH, care management, enrollment lifecycle.
+•	Scalable Architecture → Metadata-driven Medallion Architecture — adding a new source or feature is a config change, not a rewrite.
+•	Measurable ROI → 50% faster data access, 99% LOB accuracy, incremental revenue from expanded scope.
+ 
+6. AI-Powered Self-Service: DataScout — The "Amazon-Like" Experience
+Beyond building the Member DNA semantic layer, LatentView deployed DataScout, an AI-powered natural language query interface built on Databricks Genie, that sits on top of the Member DNA Gold layer and allows business users to interrogate member data by asking questions in plain English.
+What DataScout Is:
+A governed AI data room exposing 75 key member attributes through a conversational interface. The AI automatically:
+•	Interprets the intent — understands what the user is asking, even with imprecise terminology
+•	Generates optimized SQL — writes the correct query with filters, aggregations, groupings, and case logic
+•	Executes and returns results — delivers tabular data with row counts
+•	Auto-generates visualizations — produces charts appropriate to the data shape
+•	Provides narrative summaries — explains the results in natural language
+
+Live Production Examples:
+User's Natural Language Question	What DataScout Did
+"How many members by Finance LOB for current study period?"	Generated GROUP BY query, returned 15 LOB segments (FEP: 2.5M, Premier Self-funded: 707K, IFP: 665K), auto-produced bar chart
+"Show age distribution by age bands (0-17, 18-25, ... 65+)"	Generated CASE-based age-banding query, returned 7.3M+ members across 7 bands, identified 65+ as largest cohort (1.5M)
+
+75 Attributes Accessible Through DataScout:
+Category	Available Attributes
+Member Identity	Entity ID, Subscriber ID/Key, Member ID, Member Suffix, HCPK
+Demographics	First/Middle/Last Name, DOB (hashed), Age (days & years), Gender Flag
+Family Relationship	Subscriber Flag, Spouse Flag, Dependent Flag
+Geography & Location	Home Address, City, State, Country, ZIP, County, Lat/Long, FIPS, Census Tract/Block Group
+Enrollment & Coverage	Study Period dates, Eligibility dates, Med/Dental/Vision/Pharmacy/Life Member Months & Indicators
+Product & Plan	Class Plan ID, Product ID, Subgroup, Medical Product/Plan Name, PCP ID, IPA ID
+Group & Employer	Parent Group Num/Name, Group Num/Name
+LOB & Finance	COA, CAC, Consumer/Commercial, LOB Detail, Finance LOB, Fund Type
+Race, Ethnicity & Language	Race/Ethnicity Code & Description, Language, BISG Imputed Race (RE_MAX)
+Mortality	Death Date
+
+The DataScout Vision for MetLife:
+•	Ask "How many members enrolled in Group Life products in Q1 2026 by region?" and get instant answers
+•	Ask "What is the age and gender distribution of our Medicare Advantage members?" without waiting for an analyst
+•	Ask "Show me enrollment trends for our top 10 employer groups" and get auto-generated charts
+•	All while maintaining data governance, audit trails, and role-based access controls
+This is not a future concept — DataScout is running in production today.
+7. Contract Codification: AI-Powered Document Intelligence
+LatentView built a complete Contract Codification pipeline that transforms unstructured provider contract PDFs into a fully structured, queryable, analytics-ready data product.
+Scale of the Problem We Solved:
+Metric	Value
+Total Contract PDFs Processed	10,329
+Distinct Provider Organizations	597
+Total Pages Parsed	424,536
+Average Pages per Contract	41
+Largest Single Contract	372 pages
+Total Corpus Size	27.2 GB
+
+Intelligent PDF Extraction & Structuring:
+•	10,329 contract PDFs ingested across 597 healthcare providers via Lakeflow Spark Declarative Pipeline with Auto Loader for incremental ingestion
+•	Dual-mode text extraction: fast local parsing (pypdf) with automatic OCR fallback — 93% successful extraction rate
+•	LLM-powered structured extraction using Claude Sonnet (200K context) — extracts 60+ structured fields per contract
+•	Automated quality validation with completeness scoring (HIGH/MEDIUM/LOW/FAILED tiers)
+•	Output: Main Extract Table — tbl_contract_code_pdf_data_extract (10,329 rows × 64 columns)
+
+Analytical Tables (8 Tables, 325+ Columns):
+Table	Rows	Cols	What It Answers
+Contract Overview	10,329	41	Agreement categories, provider types, payment models, complexity tiers
+Financial Profile	10,329	41	Capitation PMPM rates, fee schedules, withhold %, risk corridors
+Compliance Flags	10,329	59	55+ boolean flags: HIPAA, ERISA, ACA, HEDIS, CAHPS, Star Ratings
+Services Detail	200,000+	14	Every included/excluded service with category and delegation flags
+Termination Profile	10,329	34	Notice/cure periods, termination conditions, risk scores
+Provider Scorecard	597	87	Provider-level rollup: financial, compliance, termination, quality metrics
+Contract Lifecycle	10,329	29	Document versioning, amendment chains, contract age, active/expired status
+Dispute Governance	10,329	20	Arbitration/mediation flags, governing law, venue, mechanism counts
+
+Provider Contract Analytics Genie Space:
+Just as we built DataScout on Member DNA, we deployed an AI-powered Genie space on the 8 analytical tables for natural language querying of contract intelligence.
+User's Question	What the AI Did
+"Show providers with contract counts, complexity, compliance"	Queried provider scorecard (87 cols), returned 597 providers ranked by risk
+"HIPAA compliance flags by agreement category?"	Auto-joined overview + compliance tables, produced HIPAA cross-tab across all categories
+
+Why This Matters for MetLife:
+•	Customer Enrollment Optimization: Contract terms directly impact enrollment — codified and queryable means instant coverage gap identification.
+•	Regulatory Compliance at Scale: 55+ boolean compliance flags across 10,329 contracts — instant gap identification.
+•	Financial Risk Visibility: Capitation PMPM, withhold %, risk-sharing, stop-loss — all queryable. Provider Scorecard rolls up 87 metrics.
+•	Contract Lifecycle Management: Amendment chains, version tracking, execution lag — complete portfolio visibility.
+•	Scalable AI Pattern: Same PDF → LLM → analytical tables → Genie pattern for any document corpus at MetLife.
+
