@@ -1,0 +1,69 @@
+
+
+
+Critical Requirements & Asks from Parag Naik
+Parag emphasized that MetLife is looking for a strategic partner, not a tactical body shop. His specific expectations for the next meeting include:
+LatentView as a strategic partner: Expectation is that LatentView must provide a high-level thought process and help implement the semantic layer vision and framework. 
+Reporting optimization - Data Shopping Experience for internal customers: A vision for internal customers to have an "Amazon-like" experience for data—moving from static reporting to a dynamic, self-service model where users can select and build what they need.
+Insurance-Specific Use Cases: LatentView needs to bring domain expertise to the table. Parag specifically requested examples of how a Semantic Layer can optimize processes like Customer Enrollment.
+Quantifiable Impact:  Share examples of how the 5 strategic themes shared by Latentview actually get taken from theory to implementation.  For the next leadership meeting, Parag requested case studies and past success stories/ PoV showing the impact and optimization achieved at other firms (ROI, time saved, or process improvement). 
+Next meeting on Apr 27th: The goal of the next session is to present this to senior stakeholders at MetLife - Carlos Antollini ( Global Director of Business Intelligence Strategy, Platforms and Analytics) and Suresh.
+
+
+
+
+
+1	"Member DNA - Feature Repository
+"	90%	Completed	Manpreet Sandhu	Building a cloud-native, centralized Member Data Repository that unifies eligibility, claims, pharmacy, and external data into a standardized, analytics-ready dataset to enable faster insights, advanced modeling, and improved healthcare outcomes across business stakeholders.	"50% reduction in turnaround time for data consumption 
+
+99% accurate member LOB mapping, validated against finance reports
+
+Client Confidence: Positive feedback from Client Mike Becker resulted in the addition of a new resource and a new SOW valued at $52.5K."	"• Databricks (SparkSQL, PySpark, Python)
+• Netezza (data source)
+• Snowflake 
+• Tableau (reporting)
+• Azure DevOps (CI/CD pipeline)"	Healthcare organizations lack a single, centralized data hub that can be directly consumed by data scientists for modeling and predictions. Data remains fragmented for a member across eligibility, claims, pharmacy, and external sources, making it difficult to generate consistent insights or build scalable analytical pipelines. In addition, poor data management practices and dependency on legacy on-premises servers like Netezza create performance bottlenecks, slow down access, and limit agility. This results in inconsistent reporting, delayed analytics, and missed opportunities to improve member outcomes, reduce costs, and enhance engagement.	"Developing a pipeline to create a centralized repository table which contains the complete Member details and other business metric fields which helps the different team/LOB's/Stakeholders to have a one stop solution to fetch the required details or information instead of accessing different tables.
+The goal is to:
+
+Enable consistent and reliable analytics across cost, utilization, risk, and engagement dimensions.
+Support advanced modeling and predictive use cases by offering a standardized, feature-ready dataset.
+Reduce reliance on slow legacy infrastructure and accelerate delivery of insights with modern cloud-native architecture.
+Align data with business subject areas to ensure usability for diverse stakeholders across clinical, financial, and operational processes.
+Provide scalability and flexibility to incorporate new features, subject areas, and external community/social data over time."	"Member DNA is a single, analytics-ready feature repository that brings together everything about member basically 360 degree view of a member. The repository was designed to accommodate 700 + feature variables, organized based on business subject areas to align with business processes. Each row represents one member over a defined study period. The data consist member's eligibility months, what products they’re enrolled in, how much care they used (hospital, ER, outpatient, pharmacy),  what it cost (billed, allowed, paid), whether they’re taking chronic medications, risk and condition flags, and where they live so we can layer in community and social factors. Everything is normalized to member months. 
+
+Implemented a Medallion Architecture(A meta-data driven approach that allows for easy addition or removal of sources and features without significant workflow or code changes) to streamline its data transformation process. This architecture consists of three layers: 
+Bronze (Raw data), 
+Silver (Data transformation layer), 
+and Gold (Final Business aggregates data).
+
+ Scale Snapshot (helps justify investment) 
+ • ~635 total data points (columns) per member-period in the current build.
+ • ~170+ are claims cost / utilization measures across settings (IP, OP, ER, Rx, readmissions, adherence, risk).
+ • ~60+ coverage & product attributes to support employer & benefit reporting.
+ • 100+ location, census, and social risk variables for equity, access, and community impact analysis. "	" What Business Teams Can Do With Member DNA: 
+
+Member DNA helps business teams pinpoint where healthcare dollars are spent, identify avoidable costs and high-risk members, and drive proactive care by analyzing claims, pharmacy, and risk data across geographies and populations using  consistent, exposure-adjusted metrics.  
+
+Why It’s Valuable:  
+
+It provides a single, ready-to-use view of member data that reduces analysis time,  enables fair comparisons, supports pricing and renewal decisions, and accelerates reporting, modeling, and targeted interventions."	"Data scout 
+HRCM
+stoploss 
+BISG- Bayesian estimation accuracy 
+ArcGis
+IFP retention
+tableau report - Complex Care program and Altais Risk Adjustment dashboards (for demographic details)"	"1: Stop loss : Predict Member Healthcare costs and likelihood of a member's medical costs exceeding stoploss thresholds.
+2:HRCM (High Risk Case Management ) :  Identify members with highest level of health care utilization relative to general population.
+3:BISG : Identify the members race/ethinicity information based on members geographical information
+How it helped business: Better member insight and improved health outcomes
+4. ArcGis:  By mapping member locations, we were able to identify the number of BSC members residing in wildfire-affected regions and those within evacuation zones, providing actionable insights for emergency response planning.
+5. IFP Retention: Identifying members likely to leave and enabling targeted retention actions.
+4: Analytical works : Member clinical dashboard and additionaly serving as a single point of source for various columns across teams(Like memebrs LOB data, Members geographic data )"	"1. SQL
+2. Snowflake
+3. Azure Databricks
+4. Py-spark
+5. Python
+6. Onprem and cloud sources"	https://lv-knowledgemanagement.atlassian.net/wiki/spaces/BSCB/pages/486342711/DEL+2+Comprehensive+Data+Management+and+Quality+Enhancement+Framework+for+Real-Time+Healthcare+Analytics		DEL2		
+
+
+										
