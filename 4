@@ -1,0 +1,100 @@
+From Fragmented Data to an AI-Powered “Data Marketplace”
+How LatentView Enabled Enterprise-Scale Semantic Intelligence for Blue Shield — and What It Means for MetLife
+1. The Problem: Data Was Slowing the Business Down
+
+Blue Shield of California faced a challenge that closely mirrors what MetLife is solving today.
+
+Data was fragmented across multiple systems, including claims, enrollment, pharmacy, MDM, and care management platforms. Each business team maintained its own definitions of key metrics, which resulted in conflicting numbers across reports. Analysts were spending more time assembling data than actually analyzing it.
+
+Adding new features or datasets required weeks of ETL effort, and there was no unified layer to support AI, self-service analytics, or advanced modeling.
+
+Business Impact:
+
+Slow decision-making
+Low trust in data
+Heavy dependency on IT teams
+Missed opportunities in cost optimization, enrollment growth, and risk prediction
+2. The Vision: A Semantic Layer with an “Amazon-like” Data Experience
+
+LatentView partnered with Blue Shield to define a forward-looking vision.
+
+The goal was to build a governed semantic layer that acts as a single source of truth while enabling a self-service, AI-powered data marketplace experience.
+
+This vision was based on four principles:
+
+One trusted dataset for all business teams
+Business-friendly, standardized feature definitions
+Self-service access without deep technical dependency
+An AI-ready foundation for natural language analytics
+3. The Approach: Engineering a Scalable Data Foundation
+A. Semantic Layer as the Core Data Product (Member DNA)
+
+Instead of building dashboards, LatentView built a data product.
+
+The Member DNA semantic layer consists of over 635 precomputed features for every member-period. It unifies data across seven disparate systems into a single, analytics-ready structure.
+
+Each row represents one member for a specific study period, and each column represents a business-ready metric.
+
+This design allows business users and data scientists to directly consume data without complex transformations.
+
+B. Scalable Architecture Built for Growth
+
+The solution was implemented using a Medallion Architecture (Bronze → Silver → Gold) on Azure Databricks, with governance enforced through Unity Catalog.
+
+The platform was deployed across four environments — Development, QA, Staging, and Production — with CI/CD pipelines managed via Azure DevOps.
+
+A key innovation was a metadata-driven framework powered by configuration files.
+
+More than 18 configuration files control ingestion, transformations, data quality checks, and output generation. This means adding a new feature or data source requires only a configuration change, not a code rewrite.
+
+C. Unified Data Ecosystem
+
+The semantic layer integrates multiple heterogeneous systems, including:
+
+Claims platforms (Snowflake, Netezza)
+Master data systems (Reltio)
+Clinical and risk systems (DXCG, IHR)
+Service and care management data marts
+
+This consolidation transformed seven independent systems into one governed and unified data layer.
+
+D. Built-In Reliability and Governance
+
+The pipeline operates daily with over 20 orchestrated tasks and includes automated data quality checks such as schema validation, count verification, and duplicate detection.
+
+If any quality threshold is breached, the pipeline halts automatically to ensure only trusted data is published.
+
+This design ensures high reliability, strong governance, and consistent data quality across all use cases.
+
+4. The Transformation: From Data Chaos to a Data Storefront
+
+Before this implementation, analysts had to query multiple systems, manually build datasets, and wait weeks for new data.
+
+After implementation, the organization gained a “data storefront” experience.
+
+A single table with 635+ features allows users to directly access business-ready data. Metrics such as cost per member per month (PMPM), risk scores, and enrollment indicators are available as ready-to-use columns.
+
+Business users can now “shop” for data the same way they would browse products — quickly, intuitively, and without technical barriers.
+
+5. Real Business Impact
+
+This transformation delivered measurable results:
+
+50% reduction in data access time
+99% accuracy in line-of-business (LOB) mapping, validated against finance systems
+Consolidation of seven systems into one unified layer
+Enablement of multiple high-value analytics use cases
+Additional revenue through expanded scope (new SOW worth $52.5K)
+6. Deep Insurance Domain Integration
+
+The semantic layer was not just technically robust — it was deeply aligned with insurance domain needs.
+
+It included:
+
+Enrollment intelligence (member months, tenure, product mix)
+Cost and risk modeling (PMPM, allowed vs paid amounts, risk scores)
+Clinical intelligence (31 condition categories and risk indicators)
+Medication adherence (PDC metrics across drug classes)
+Health equity insights (BISG race/ethnicity, SDOH indices)
+
+This ensured that the platform delivered business value, not just data availability.
