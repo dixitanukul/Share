@@ -1,0 +1,34 @@
+Provider Contract Codification — AI-Powered Contract Intelligence
+
+The Problem
+
+Healthcare provider contracts are locked inside thousands of PDFs — scanned, multi-format, and dense legal documents. Understanding what's in them today requires manual review, making it nearly impossible to answer basic questions like: Which providers lack stop-loss protection? Where are our HIPAA compliance gaps? Which contracts are up for renewal with unfavorable terms?
+
+What We Built
+
+We built an end-to-end AI pipeline that reads every provider contract PDF, understands the legal content, and transforms it into structured, queryable data — no manual review required.
+
+How It Works (3 Stages)
+
+Stage 1 — Intelligent Document Reading Not all PDFs are created equal. Some are digital-native, some are scanned images, some are a mix. Our pipeline uses a smart 3-tier approach: it first tries fast digital extraction, automatically detects when that fails (scanned pages, image-heavy documents), and falls back to OCR, then AI-powered document parsing as a last resort. This alone cut document processing costs by ~90% compared to running every file through AI parsing.
+
+Stage 2 — LLM-Powered Contract Understanding This is where the AI does the heavy lifting. Each contract's full text is sent to a large language model (Claude Sonnet with a 200K-token context window — large enough to read an entire 100+ page contract in one pass). The LLM doesn't just extract keywords — it understands the document. It identifies 60+ structured fields: effective dates, payment models, capitation rates, termination conditions, compliance obligations, dispute mechanisms, covered services, and more. For contracts that are too large even for a 200K context window, the system automatically chunks the document, extracts from each section, and intelligently merges the results. A second pass targets any under-extracted agreements, ensuring nothing important is missed.
+
+Stage 3 — Analytical Table Generation The raw LLM output is then transformed into 12 purpose-built analytical tables covering every dimension of a provider contract: financial terms, compliance flags, termination risk, services, provider scorecards, amendment chains, regulatory provisions, and more — totaling 581 queryable columns, each with plain-English descriptions so both humans and AI can understand what every field means.
+
+The Result — Natural Language Contract Intelligence
+
+On top of these tables, we deployed a Genie AI space where business users can ask questions in plain English:
+
+"Which providers have capitation with no stop-loss protection?" — The AI queries the financial table and returns results instantly.
+"Show me HIPAA compliance gaps by agreement category" — The AI auto-joins the right tables and produces a cross-tab.
+"What are the termination notice periods for our highest-risk providers?" — The AI combines the termination and scorecard tables to answer.
+No SQL. No analyst queue. No weeks of manual contract review.
+
+Why This Matters
+
+Compliance gaps become visible overnight — 55+ regulatory flags (HIPAA, ERISA, ACA, HEDIS, CAHPS) are now boolean columns, not buried in legal prose.
+Financial risk is quantified — Capitation rates, withhold percentages, risk corridors, and stop-loss provisions are structured and comparable across the entire portfolio.
+Contract lifecycle is managed proactively — Amendment chains, version history, and expiration dates are tracked automatically.
+It's a repeatable pattern — The same PDF → AI → Structured Tables → Natural Language Query architecture works for any document corpus: member handbooks, benefit summaries, regulatory filings, delegation agreements.
+We turned thousands of static legal documents into a living, queryable knowledge base — accessible to anyone who can type a question.
