@@ -1,0 +1,64 @@
+7. AI-Powered Self-Service: DataScout — The "Amazon-Like" Experience
+
+Beyond building the Member DNA semantic layer, LatentView deployed DataScout, an AI-powered natural language query interface built on Databricks Genie, that sits on top of the Member DNA Gold layer and allows business users to interrogate member data by asking questions in plain English.
+
+What DataScout Is:
+
+A governed AI data room exposing 75 key member attributes through a conversational interface. The AI automatically:
+
+Interprets the intent — understands what the user is asking, even with imprecise terminology
+Generates optimized SQL — writes the correct query with filters, aggregations, groupings, and case logic
+Executes and returns results — delivers tabular data with row counts
+Auto-generates visualizations — produces charts appropriate to the data shape
+Provides narrative summaries — explains the results in natural language
+How DataScout Was Built:
+
+DataScout was not a plug-and-play deployment — it required deliberate engineering to achieve production-grade accuracy.
+
+Data Preparation — The 635+ column Member DNA table was decomposed into focused, denormalized analytical views and trimmed to 75 key attributes spanning demographics, enrollment, cost, risk, and health equity. Every column was annotated with business-friendly descriptions in Unity Catalog, authored jointly by LatentView engineers and Blue Shield SMEs.
+
+Knowledge Store — A structured intelligence layer was built encoding Blue Shield's business logic: standardized SQL expressions for measures like PMPM and member months, filters like "active members" and "Medicare population," vetted example queries for the most common business questions, and prompt matching rules for abbreviations, misspellings, and date expressions like "last quarter." Synonyms ensured varied terminology across teams — "cost per head," "per-member cost," "PMPM" — all resolve correctly.
+
+Benchmarking and Iteration — A benchmark suite of test questions with verified SQL answers was built and run regularly to track accuracy. Curation followed an iterative cycle: seed with minimal configuration, test with domain SMEs using Genie's built-in feedback system, review auto-suggested improvements from knowledge mining, and promote approved changes into the knowledge store.
+
+Monitoring and Governance — Space managers review all user interactions via the Monitoring tab, triage flagged responses, and track adoption through audit logs. DataScout inherits Unity Catalog governance — access controls and data classification propagate automatically, keeping PHI protected even in a conversational interface.
+
+Live Production Examples:
+
+User's Natural Language Question
+What DataScout Did
+"How many members by Finance LOB for current study period?"
+Generated GROUP BY query, returned 15 LOB segments (FEP: 2.5M, Premier Self-funded: 707K, IFP: 665K), auto-produced bar chart
+"Show age distribution by age bands (0-17, 18-25, ... 65+)"
+Generated CASE-based age-banding query, returned 7.3M+ members across 7 bands, identified 65+ as largest cohort (1.5M)
+75 Attributes Accessible Through DataScout:
+
+Category
+Available Attributes
+Member Identity
+Entity ID, Subscriber ID/Key, Member ID, Member Suffix, HCPK
+Demographics
+First/Middle/Last Name, DOB (hashed), Age (days & years), Gender Flag
+Family Relationship
+Subscriber Flag, Spouse Flag, Dependent Flag
+Geography & Location
+Home Address, City, State, Country, ZIP, County, Lat/Long, FIPS, Census Tract/Block Group
+Enrollment & Coverage
+Study Period dates, Eligibility dates, Med/Dental/Vision/Pharmacy/Life Member Months & Indicators
+Product & Plan
+Class Plan ID, Product ID, Subgroup, Medical Product/Plan Name, PCP ID, IPA ID
+Group & Employer
+Parent Group Num/Name, Group Num/Name
+LOB & Finance
+COA, CAC, Consumer/Commercial, LOB Detail, Finance LOB, Fund Type
+Race, Ethnicity & Language
+Race/Ethnicity Code & Description, Language, BISG Imputed Race (RE_MAX)
+Mortality
+Death Date
+The DataScout Vision for MetLife:
+
+Ask "How many members enrolled in Group Life products in Q1 2026 by region?" and get instant answers
+Ask "What is the age and gender distribution of our Medicare Advantage members?" without waiting for an analyst
+Ask "Show me enrollment trends for our top 10 employer groups" and get auto-generated charts
+All while maintaining data governance, audit trails, and role-based access controls
+This is not a future concept — DataScout is running in production today.
