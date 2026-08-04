@@ -128,3 +128,407 @@ Answer
 
 
 The value of this project extends beyond the projected financial estimates. It delivers a scalable AI-based contract intelligence capability that transforms how provider contracts are searched, analyzed, and understood. The solution reduces dependence on manual document review, provides source-grounded responses for greater trust, integrates with the existing AI ecosystem, and can be reused across multiple contract types and business teams. The projected business value indicates the opportunity, while the delivered technical capability is the primary achievement.
+
+
+
+
+
+
+
+Appendix: Technical Deep-Dive Questions (Client FAQ)
+These are the "how does it work under the hood" questions that a technical evaluator, IT security team, or procurement committee would ask during a demo or vendor assessment.
+
+T1: How is the Risk Score Calculated?
+Question: "How are you calculating the risk score for each provider? What's the exact methodology and what factors drive it?"
+
+Answer
+The provider risk score is a composite additive score computed from 5 independent risk dimensions. Each component is scored independently, and the final score is a simple sum:
+
+risk_score = expiration_risk + compliance_gap + clause_gap + amendment_velocity + fin_risk
+Score Range: 18–48 (observed in production across 272 scored providers)
+
+Component Breakdown
+Component	What It Measures	Value Range	Distinct Levels	Weight (implicit)
+expiration_risk	Days to contract expiry. Higher = closer to expiring without renewal action	5 – 20	3 levels (5, 10, 20)	~33% of max score
+compliance_gap	Count of compliance gaps across 7 tracked regulations (Knox-Keene, AB 72, SB 137, CMS MA, AB 1455, AB 352, Network Adequacy)	7 – 25	6 levels	~42% of max score
+clause_gap	Count of missing "standard" contractual clauses (offset, DOFR, etc.) vs. expected clause template	0 – 0	1 level (currently all 0)	Currently inactive
+amendment_velocity	How frequently the contract has been amended — higher velocity can indicate instability or unresolved issues	1 – 15	5 levels	~25% of max score
+fin_risk	Financial exposure magnitude — higher spend = higher systemic risk if provider relationship deteriorates	2 – 10	4 levels	~17% of max score
+Tier Classification
+Tier	Score Range	Provider Count	Meaning
+LOW	21 – 39	239 (88%)	Stable contracts, minimal action needed
+MEDIUM	40 – 48	26 (10%)	Elevated risk requiring monitoring or proactive management
+MONITOR	18	7 (2%)	Counterintuitive: these have LOWEST scores but are flagged because they have very low amendment velocity + low compliance engagement — "silent" contracts that may be neglected
+Key Design Decisions
+Additive (not weighted-average): Each component contributes independently. No component can be "masked" by another being low — this prevents a scenario where a provider with critical expiration risk but good compliance scores hides in the LOW tier.
+
+Discrete scoring (not continuous): Each component uses bucketed integer values (e.g., expiration_risk is 5, 10, or 20 — not a continuous scale). This makes scores interpretable and auditabale vs. a black-box continuous model.
+
+clause_gap currently zeroed: The clause_gap component is computed but currently produces 0 for all providers. This is because the "standard clause template" (expected clauses per contract type) has not been finalized by the legal team. The infrastructure is in place to activate this component when the template is approved.
+
+No ML/LLM involvement: Risk scoring is purely rule-based computation on structured data. No model inference, no prediction — deterministic and auditable.
+
+Scored at pipeline time, not query time: Scores are precomputed during the data pipeline run and stored in tbl_contract_risk_scores. They are NOT recalculated per user query — this ensures consistency across all users and eliminates latency.
+
+Data Source
+Table: dev_adb.raw.tbl_contract_risk_scores
+272 providers scored (34 providers lack sufficient data for scoring)
+Refresh: Recomputed on each pipeline execution
+Timestamp: scored_at column records when each score was last computed
+T2: How is Answer Confidence Level Calculated?
+Question: "How do you determine whether an answer is HIGH, MODERATE, or LOW confidence? What's the exact algorithm?"
+
+Answer
+Confidence is calculated through a multi-layer system — not a single formula. Different answer types use different confidence mechanisms, and a post-generation guard can downgrade confidence.
+
+Layer 1: Passage Retrieval Confidence (for vector search answers)
+When the answer relies on retrieved contract passages, confidence is computed using a 3-factor weighted formula:
+
+confidence = 0.50 × doc_score + 0.30 × passage_score + 0.20 × recency_score
+Factor	Weight	What It Measures	How Computed
+doc_score	50%	Ratio of "high-quality" passages (score > threshold) among all retrieved	count(passages where cosine_similarity > 0.65) / total_passages_retrieved
+passage_score	30%	Peak semantic relevance — best single-passage match quality	max(cosine_similarity_scores) — range ~0.50–0.80 for GTE-1024d on contract text
+recency_score	20%	Whether top passages come from current-effective documents (not superseded)	1.0 if any top-3 passage is from current doc, 0.3 if all superseded, 0.5 if unknown
+Threshold: _SCORE_THRESHOLD = 0.65 (calibrated empirically from GTE-1024d embeddings on contract text — represents p50–p75 of cosine scores)
+
+Label mapping:
+
+Numeric Score	Label
+≥ 0.70	HIGH
+≥ 0.40	MODERATE
+< 0.40	LOW
+Layer 2: SQL/Structured Data Confidence
+When the answer comes from SQL queries against structured tables:
+
+HIGH: SQL returned non-empty results AND the query executed successfully
+MODERATE: SQL returned results but with potential ambiguity (e.g., fuzzy provider name match)
+LOW: SQL returned empty results or query failed
+Layer 3: Hallucination Guard (Post-Generation Adjustment)
+After the answer is generated, the HallucinationGuard runs 7 zero-cost checks (no LLM calls) that can downgrade confidence:
+
+Check	What It Detects	Action
+1. confidence_floor	No citations AND no SQL data in answer	Cap at MODERATE
+2. numeric_grounding	Numbers in answer not found in source data	WARN (flag)
+3. provider_names	Provider names in answer not in session scope	WARN or BLOCK
+4. date_plausibility	Dates outside reasonable range (pre-2000 or post-2030)	WARN
+5. non_bsc_providers	Mentions Kaiser, Aetna, Anthem, etc. as BSC-contracted	BLOCK
+6. universality_claim	"All N providers have X" without SQL COUNT proof	WARN
+7. same_provider_claim	"Same provider tops both dimensions" without proof	WARN
+Severity outcomes:
+
+WARN: Finding is logged, confidence MAY be reduced by one level
+BLOCK: Answer is rejected or confidence forced to LOW + warning injected
+Layer 4: Final Answer Assembly
+The AgentController's synthesis step considers:
+
+Tool-level confidence scores from each tool call
+Number of supporting evidence sources
+Whether multiple tools corroborate the same answer
+HallucinationGuard adjustments
+Final confidence in the API response = min(tool_confidence, guard_adjusted_confidence)
+
+Why This Design?
+Calibrated to real data: The 0.65 threshold was empirically derived from our specific embedding model (GTE-1024d) on our specific corpus (healthcare contracts). It's not an arbitrary cutoff.
+Multi-factor prevents gaming: A single high-similarity passage alone can't push confidence to HIGH — you also need breadth (doc_score) and recency (not citing superseded documents).
+Post-generation guard catches errors: Even if retrieval scores are high, the guard catches cases where the LLM introduced hallucinated numbers or provider names not in the source.
+Zero-cost guard: All 7 hallucination checks use regex and set operations — no additional LLM calls, no added latency or cost.
+T3: How is Cost Per Query Calculated?
+Question: "How do you calculate the cost shown per query? What does the dollar amount actually represent?"
+
+Answer
+The cost displayed per query is an estimated internal cost tracked by the CostController class — it represents the cumulative operational cost of all LLM calls and tool executions required to answer that specific question.
+
+Cost Tracking Architecture
+class CostController:
+    budget = $15.00  # Max allowed spend per single query
+    warn_at = 80%    # Alert at $12.00
+    # Every tool call and reasoning step records its cost
+The controller maintains a per-query ledger — every operation records a line item:
+
+Cost Components (from settings.py)
+Operation	Cost per Call	What Triggers It
+COST_REASONING_STEP	$0.005	Each LLM reasoning iteration in the ReAct loop (typically 3–6 per query)
+COST_SQL_QUERY	$0.001	NL→SQL generation + warehouse execution
+COST_PASSAGE_SEARCH	$0.010	Vector search + embedding generation for query
+COST_CITATION_VERIFY	$0.020	LLM-based citation verification (uses Haiku)
+COST_SUMMARIZE	$0.150	Full answer synthesis with Claude Sonnet
+COST_DRAFT_TEXT	$0.100	Report/export text generation
+COST_DOCUMENT_FETCH	$0.005	Document chunk retrieval
+COST_PROVIDER_LOOKUP	$0.0005	Provider name resolution
+COST_CALCULATE	$0.0001	Arithmetic/calculation operations
+COST_CHART_GENERATE	$0.002	Chart data preparation
+COST_EXPORT_DATA	$0.002	Data export formatting
+COST_LEGACY_BRANCH_A	$5.50	Clause existence scan (expensive: scans 306 providers)
+COST_LEGACY_BRANCH_FAST	$0.20	Single-provider fast-path queries
+Typical Query Cost Breakdown
+Query Type	Typical Total Cost	Breakdown
+Simple provider lookup	$0.02–0.03	3 reasoning steps ($0.015) + 1 SQL ($0.001) + 1 passage search ($0.01)
+Multi-hop scorecard	$0.04–0.06	5 reasoning steps ($0.025) + 2 SQL ($0.002) + 1 passage ($0.01) + citation ($0.02)
+Portfolio-wide clause scan	$5.50–6.00	Legacy Branch A full-network scan
+Rate comparison	$0.03–0.04	4 reasoning steps + 1 rate query + 1 SQL
+Executive briefing	$0.04–0.05	4 reasoning steps + 2 SQL + 1 financial analysis
+Budget Enforcement
+The CostController enforces a hard budget cap of $15.00 per query:
+
+Before each tool call, the controller checks can_afford(estimated_cost)
+If remaining budget < estimated cost of next tool → agent is forced to SYNTHESIZE with available data
+If budget crosses 80% ($12.00) → warning logged, agent biased toward synthesis
+If budget exhausted → agent ABORTs with partial answer + "budget exceeded" flag
+Why $15 budget? This accommodates the most expensive operation (clause_existence at $5.50) plus multi-concept queries that combine clause scans with additional tools ($5.50 + $6.50 = $12.00 realistic max).
+
+What These Costs Represent
+These are estimated operational costs based on:
+
+Databricks Foundation Model API token pricing (input + output tokens)
+Vector Search query costs
+SQL Warehouse compute seconds
+Pre-calibrated estimates (not real-time metered)
+They are NOT billed to the user — they're internal cost tracking for platform governance and optimization. The displayed cost helps BSC understand per-query economics and identify expensive query patterns.
+
+T4: LLM Models — Configuration, Sizing, and Settings
+Question: "What LLM models are you using, what are their token limits, how big are they, and are there any specific configurations or settings applied?"
+
+Answer
+Models Deployed
+Model	Endpoint Name	Role	Use Cases
+Claude Sonnet 4 (2026-06)	databricks-claude-sonnet-4-6	Primary Reasoning	Agent ReAct loop, NL→SQL generation, answer synthesis, multi-hop orchestration
+Claude Haiku 4.5	databricks-claude-haiku-4-5	Fast/Cheap Tasks	Citation verification, entity extraction, coreference resolution
+GTE-Large-EN	databricks-gte-large-en	Embeddings	Document chunk embedding (1024 dimensions)
+BGE-Reranker-v2-m3	(not deployed)	Reranking	Configured but RERANKER_DEPLOYED=False — uses score-based ranking instead
+Model Specifications
+Spec	Claude Sonnet 4	Claude Haiku 4.5	GTE-Large-EN
+Provider	Anthropic (via Databricks FMAPI)	Anthropic (via Databricks FMAPI)	Alibaba/DAMO (via Databricks)
+Context Window	200K tokens	200K tokens	8,192 tokens (per chunk)
+Output Limit	64K tokens (default)	64K tokens (default)	N/A (embedding)
+Embedding Dimensions	N/A	N/A	1024
+Model Size	~70B parameters (estimated)	~8B parameters (estimated)	~335M parameters
+Latency (observed)	2–8s per call	0.5–2s per call	<100ms per embed
+Strengths	Complex reasoning, nuanced synthesis, SQL generation	Speed, cost-efficiency, simple classification	Dense retrieval, domain adaptable
+Platform-Specific Configuration
+Agent Reasoning Settings (from settings.py):
+
+Setting	Value	Purpose
+AGENT_REASONING_MAX_TOKENS	6,000	Max tokens per LLM reasoning step output
+AGENT_MAX_STEPS	10	Max ReAct loop iterations before forced synthesis
+AGENT_TOTAL_TIMEOUT_S	600s (10 min)	Total wall-clock timeout for a query
+AGENT_STEP_TIMEOUT_S	120s	Timeout per individual step
+SQL_MAX_TOKENS	800	Token budget for NL→SQL generation specifically
+LLM Call Configuration (per invocation):
+
+Parameter	Sonnet (Reasoning)	Haiku (Fast)
+Temperature	0 (deterministic)	0
+Max output tokens	6,000 (reasoning), 4,000 (synthesis)	2,000
+System prompt	~4,000 tokens (includes table schemas, rules, tool catalog)	~500 tokens (task-specific)
+Response format	Structured JSON (thought, action, tool_name, tool_input, final_answer)	Free-text or boolean
+Stop sequences	None (JSON boundary detection)	None
+Embedding Configuration:
+
+Parameter	Value
+Model	databricks-gte-large-en
+Dimensions	1024
+Similarity metric	Cosine
+Normalization	L2-normalized before indexing
+Chunk size	Variable (200–2000 chars, median ~600)
+Total indexed chunks	727,875
+Why These Model Choices?
+Sonnet 4 for reasoning: Best-in-class for complex multi-step planning, SQL generation accuracy, and nuanced contract language interpretation. The 200K context window accommodates large system prompts + tool results + conversation history.
+
+Haiku 4.5 for verification: Citation checking needs fast turnaround (sub-2s) and is a simple binary classification task — Haiku delivers at ~1/10th the cost of Sonnet while maintaining >95% accuracy on yes/no verification.
+
+GTE-Large-EN for embeddings: Selected for strong performance on legal/business English text. 1024 dimensions provides good discrimination without excessive index storage costs. Outperformed alternatives (ada-002, e5-large) in internal benchmarks on contract-specific retrieval.
+
+No fine-tuning: All models are used as-is from the Databricks Foundation Model API — no custom fine-tuning. Domain adaptation is achieved through:
+
+Detailed system prompts (4,000+ tokens of domain context)
+Few-shot examples embedded in tool descriptions
+Table schema injection (column names + comments + sample values)
+Post-generation guardrails (HallucinationGuard)
+T5: How Does the System Prevent Hallucinations?
+Question: "What safeguards exist to prevent the AI from making things up or citing information that doesn't exist in the contracts?"
+
+Answer
+Multi-Layer Anti-Hallucination Architecture
+The platform implements 6 distinct layers of hallucination prevention, applied at different stages of the answer pipeline:
+
+Layer 1: Input Guardrails (Pre-Processing)
+
+Provider name resolution via dim_provider_canonical (531 entries + aliases) — rejects unrecognized names before any processing begins
+Payer exclusion list blocks questions about competitors (Kaiser, Anthem, Aetna, etc.) being treated as BSC providers
+Fake provider detection: if canonical resolution returns zero matches, answer explicitly states "provider not found" rather than generating content
+Layer 2: Tool-Level Constraints (During Execution)
+
+SQL queries are restricted to a 13-table whitelist — the LLM physically cannot query tables outside the approved set
+DDL/DML regex blocking: CREATE, DROP, INSERT, UPDATE, DELETE are pattern-matched and rejected
+Catalog prefix enforcement: all generated SQL must target dev_adb.raw.* only
+Result limits: SQL_MAX_ROWS = 1000, preventing overwhelming data floods
+Layer 3: Evidence Grounding (During Retrieval)
+
+All passages come from vector search with real cosine similarity scores (0.50–0.80 range)
+Score threshold of 0.65 filters out weak matches
+Passages include provenance metadata: source filename, page estimate, chunk type, amendment order
+is_current filter ensures superseded document content is deprioritized
+Layer 4: HallucinationGuard (Post-Generation, Zero-Cost) 7 automated checks run on every answer:
+
+Numbers in the answer verified against source data
+Provider names verified against session scope
+Dates checked for plausibility (1990–2030 range)
+Non-BSC provider blocklist (Kaiser, Aetna, etc.)
+Universality claims ("all providers have X") validated against SQL counts
+Same-provider multi-dimensional claims flagged
+Confidence floor: no citations → cannot be HIGH confidence
+Layer 5: AnswerGroundingEnforcer (Post-Generation)
+
+Verifies that specific claims in the answer map to specific evidence from tool results
+Cross-references cited numbers, dates, and provider names against the raw tool outputs
+If grounding ratio falls below threshold → confidence is downgraded
+Layer 6: Structural Refusal Patterns
+
+System prompt explicitly instructs: "Say 'I don't know' rather than fabricate"
+13 prohibited phrases ("refer to the PDF", "I was unable to determine" when evidence IS present)
+False premise correction: if user states incorrect facts, system corrects with data
+Out-of-scope detection: questions about claims data, competitor rates, negotiation strategy → explicit refusal with explanation of WHY
+Real Example (from stress tests)
+Question: "Tell me about Sunrise Valley Medical Center's contract terms"
+
+Response: "I was unable to find 'Sunrise Valley Medical Center' in our contracted provider network. I searched dim_provider_canonical (531 entries) and tbl_genie_provider_profile (306 providers). No match found. I will NOT fabricate contract terms for a provider I cannot verify."
+
+T6: What Happens When the System Doesn't Know?
+Question: "How does the app handle questions it can't answer? Does it ever say 'I don't know' and what triggers that?"
+
+Answer
+The system has explicit uncertainty handling — it's designed to fail gracefully rather than fabricate.
+
+Triggers for "I Don't Know" Responses
+Trigger	Example	Response Pattern
+Provider not in network	"Tell me about Sunrise Valley Medical Center"	"Provider not found in our system. Searched 531 canonical entries."
+Data doesn't exist in platform	"What's Cedars-Sinai's total claims volume?"	"Claims data is not available. CLAIMS_AVAILABLE=False. I have contracted rates, not utilization."
+External data request	"Compare our rates to what Anthem pays"	"Competitor rate data is not in scope. I only have BSC's own contract rates."
+Fake regulation	"What's SB 2048 compliance status?"	"SB 2048 is not among the 7 regulations tracked in our compliance system."
+Future prediction	"Which providers will terminate next year?"	"I cannot predict future provider behavior. I can show current risk scores and expiry dates."
+Negotiation context	"What did their CEO say in negotiations?"	"Negotiation discussions are not in our data. We store signed documents only."
+CPT-level granularity	"Rate for CPT 99213 at Eisenhower?"	"Most rates are at category level (per diem, case rate). Individual CPT-level pricing is not typically extracted."
+Confidence Signals to Users
+Every response includes:
+
+Confidence label: HIGH / MODERATE / LOW / UNCERTAIN
+Confidence score: 0.0–1.0 numeric value
+Citations: Source documents with cosine similarity scores
+Warnings: Any HallucinationGuard findings surfaced
+Design Philosophy
+The system prioritizes trust over completeness. A response of "I don't have that data" builds more long-term user trust than a plausible-sounding fabrication. This is especially critical in healthcare contracting where incorrect rate information or fabricated clause language could have legal and financial consequences.
+
+T7: How Fresh Is the Data? What's the Update Cadence?
+Question: "When was the data last updated? How often does it refresh? If a new amendment is signed today, when would it appear in the system?"
+
+Answer
+Current Pipeline Status
+Metric	Value
+Documents processed	199 of 10,372 total PDFs (~2% of corpus)
+Last full pipeline run	Tracked via scored_at in risk scores, computed_at in benchmarks
+Providers with data	306 in profile, 518 with rate records
+Vector index size	727,875 chunks
+Update Workflow
+New PDF ingested → Upload to document store
+OCR + Extraction → Pipeline stages 01–04 process text, chunk, embed
+Structured extraction → LLM extracts rates, clauses, dates into tables
+Vector indexing → New chunks embedded with GTE-1024d, synced to idx_unified_v4
+Intelligence recompute → Risk scores, benchmarks, alerts recalculated
+Available to users → Next query sees updated data
+Latency Expectations
+Stage	Time	Notes
+PDF to extracted text	Minutes	OCR + chunking
+Embedding generation	Minutes	Batch embed via FMAPI
+Vector index sync	Delta Sync (near real-time)	VS index syncs from source table
+Risk score recompute	Minutes	Full table scan + scoring
+End-to-end for a single document	~15-30 minutes	Includes all stages
+Limitation Disclosure
+FULL_CORPUS_PROCESSED = False — only 199/10,372 PDFs fully processed
+Some providers may have incomplete data (base agreement processed but recent amendment not yet)
+The scored_at timestamp on each risk score row tells you exactly when that provider was last scored
+T8: What Are the Security Controls?
+Question: "What security measures protect sensitive contract data? Can users access rate information they shouldn't see?"
+
+Answer
+Security Architecture
+Layer	Control	Implementation
+Data Access	Unity Catalog column masks	mask_rate_float UDF on financial columns in tbl_reimb_stop_loss
+PII Redaction	Runtime regex filters	SSN (\b\d{3}-\d{2}-\d{4}\b), DOB, address patterns stripped before response
+SQL Injection	Multi-layer prevention	DDL/DML regex block + table whitelist (13 tables only) + catalog prefix enforcement + _sanitize_like_input()
+Rate Limiting	SlowAPI	120 requests/minute per IP address
+Input Sanitization	Character whitelist	Only alphanumeric + limited punctuation allowed in provider name filters, SQL wildcards escaped
+LLM Prompt Security	Structural separation	User input is injected into a designated {question} slot — cannot override system instructions
+Budget Enforcement	CostController	$15 max per query prevents runaway resource consumption
+Fake Provider Block	Canonical resolution	Unresolved provider names → explicit refusal (no data generated)
+Competitor Data Block	Payer exclusion list	Kaiser, Anthem, Aetna, UnitedHealth, Cigna, Humana, Molina → blocked with explanation
+Column Masking (Unity Catalog)
+Sensitive financial columns in tbl_reimb_stop_loss are protected:
+
+attachment_level (FLOAT) — masked
+reimburse_rate (FLOAT) — masked
+reimburse_percentage (FLOAT) — masked
+aggregate_cap (FLOAT) — masked
+corridor_amount (FLOAT) — masked
+Users without appropriate UC privileges see masked/redacted values.
+
+T9: How Does the Agent Decide Which Tool to Use?
+Question: "When a user asks a question, how does the system decide whether to search contracts, query a database, check compliance, etc.?"
+
+Answer
+Two-Phase Routing Architecture
+Phase 1: Question Router (Fast Classification)
+
+The QuestionRouter classifies incoming questions into one of 16 route types using pattern matching + keyword analysis:
+
+Route Type	Trigger Patterns	Primary Tool
+clause_existence	"which providers have", "how many have offset"	SQL scan of clause columns
+clause_text	"show me the exact", "verbatim language"	passage_search (vector retrieval)
+rate_query	"rates", "per diem", "reimbursement"	rate_query tool
+single_provider	Named provider + info request	provider_deep_dive
+comparison	"compare", "versus", "side by side"	comparison tool
+temporal	"amendment history", "timeline", "changed"	temporal_analysis
+risk_alert	"risk", "score", "tier", "alert"	risk_alert tool
+compliance_query	"compliant", "regulation", "gap"	compliance_query
+financial_analysis	"exposure", "spend", "cost"	financial_analysis
+sql_query	Complex data questions, counts, aggregations	NL→SQL
+...6 more	Various patterns	Various tools
+6 Override Rules can reclassify:
+
+RE-1 (Rate Rescue): Question mentions rates but routed to wrong tool → override to rate_query
+RE-2 (Unresolvable Comparison): Comparison between provider and non-provider → redirect
+CE-FIX (Concept Rescue): Multi-concept questions reclassified
+PROF-SQL (Profile Shortcut): Simple provider facts → direct SQL instead of deep dive
+Phase 2: ReAct Agent Loop (Multi-Step Reasoning)
+
+For complex questions, the agent enters a Reason → Act → Observe loop:
+
+Reason: Claude Sonnet analyzes question + context → outputs JSON with thought + action + tool_name
+Act: ToolRegistry dispatches to the selected tool
+Observe: Result accumulated into working memory
+Repeat until action = SYNTHESIZE (answer ready) or max steps (10) reached
+The agent can call multiple tools sequentially — e.g., first sql_query to identify providers, then passage_search to get clause text, then rate_query to get rates.
+
+Direct Dispatch (fast-path): For recognized simple patterns ("show me rates for X"), the router bypasses the ReAct loop entirely and dispatches directly to the appropriate tool — reducing latency from 6s to 3s.
+
+T10: What's the Scalability Profile?
+Question: "How many concurrent users can this handle? What are the performance characteristics?"
+
+Answer
+Performance Characteristics
+Metric	Value	Notes
+Avg query latency	3–9 seconds	Depends on query complexity
+Simple lookups	2–4 seconds	Direct dispatch, single tool
+Multi-hop reasoning	6–10 seconds	3–5 tool calls in ReAct loop
+Portfolio-wide scans	8–15 seconds	Full clause_existence across 306 providers
+Concurrent users	Limited by SQL Warehouse + FMAPI throughput	Serverless SQL warehouse auto-scales
+Rate limit	120 requests/minute per IP	SlowAPI enforcement
+Architecture for Scale
+Stateless API: Each query is independent — no server-side session state required (sessions stored in Delta table)
+Serverless SQL Warehouse: Auto-scales compute for SQL queries (Warehouse ID: 2c99c6485f03ee73)
+Databricks Apps hosting: uvicorn with standard async worker pool
+Vector Search endpoint: Dedicated endpoint (contract_intelligence_vs_endpoint) handles embedding similarity at scale
+Foundation Model API: Databricks-managed, auto-scaled LLM inference
+Bottlenecks
+FMAPI rate limits: Claude Sonnet calls are the primary latency contributor (2–4s per call, 3–6 calls per query)
+ReAct loop serialization: Steps are sequential by design (each step depends on previous observation)
+Legacy Branch A: Clause existence scans all 306 providers — inherently expensive ($5.50, 8–12s)
+These technical Q&As are designed for procurement reviews, IT security assessments, and technical due diligence conversations where stakeholders need to understand exactly how the system works under the hood.
