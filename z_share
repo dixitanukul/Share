@@ -8,3 +8,123 @@ A critical component of the project involved re-engineering the primary data ing
 The Provider Contract Intelligence Platform (PCIP) is an LLM-powered solution that automatically extracts, structures, and operationalizes reimbursement terms from over 10,000 provider contract PDFs, with planned expansion to 30,000+ documents as the full enterprise contract portfolio is onboarded. Today, contract analysts manually review dense legal documents to answer basic rate and term questions, a process so labor-intensive that a prior engagement with KPMG spanning over a year did not deliver the expected results. Within weeks, a working capability prototype was independently built and demonstrated to stakeholders across the organization. The demo was well-received and the project has since received its first formal set of business requirements to evolve toward production, marking the transition from proof-of-concept to an enterprise initiative.
 
 The platform leverages Large Language Models combined with multi-tier OCR and a structured extraction schema to parse base agreements, amendments, and settlement documents into a queryable intelligence layer of 40+ analytical tables built on Delta Lake. Key technical components include an amendment-aware state engine that tracks contract evolution over time, a reimbursement rules engine with computable formula expression trees, and a benchmarking module that positions provider rates against portfolio-wide percentiles. Insights are surfaced through a natural-language Genie interface and a RAG-powered contract Q&A application backed by 83,000+ indexed legal text chunks, enabling negotiators and network strategists to answer complex contract questions in minutes rather than weeks. At full scale, the platform is projected to eliminate thousands of hours of manual contract review annually and significant dollar savings through reduced rate leakage via systematic benchmarking visibility, while enabling data-driven negotiations through real-time percentile positioning and leverage scoring across the entire provider network.
+
+
+
+
+1. These savings are not realized. Why are you showing them?
+Answer
+
+
+Correct. These are not realized savings. They are projected business value estimates provided by the client during the business case evaluation. We are explicitly presenting them as estimated benefits rather than achieved savings. Since the platform is still in the adoption phase, realized benefits will be measured after production usage.
+
+
+
+2. Who calculated these numbers?
+Answer
+
+
+These estimates were provided by the client business team based on their current contract review effort, operational costs, and expected productivity improvements. Our team did not independently calculate or validate these financial estimates.
+
+
+
+3. If the impact isn't realized, why should this project receive DEL?
+Answer
+
+
+DEL evaluates overall delivery excellence, not only realized financial savings. This project demonstrates innovation by building an AI-powered contract intelligence platform that automates document understanding, enables conversational contract search, provides source-grounded responses, and creates a reusable capability. The estimated business value shows the potential impact once adoption scales.
+
+
+
+4. How will these estimates be validated?
+Answer
+
+
+Once the platform is adopted, metrics such as contract review time, onboarding effort, search time, renewal review effort, user adoption, and productivity improvements can be tracked. These operational metrics can then be compared with the current baseline to quantify realized business value.
+
+
+
+5. Why should we trust these numbers?
+Answer
+
+
+We are not asking reviewers to validate the dollar amounts. The figures are client-provided business estimates based on their internal assumptions. Our responsibility is to clearly identify them as projected values rather than realized savings.
+
+
+
+6. Why is there such a wide range ($690K–$1M)?
+Answer
+
+
+The range is primarily due to platform cost avoidance. Different enterprise contract intelligence platforms have different licensing, implementation, and maintenance costs. Since no specific commercial platform was selected for comparison, the client estimated a reasonable range.
+
+
+
+7. Why not wait until you have actual savings?
+Answer
+
+
+Waiting for realized savings could delay recognition of projects that have successfully delivered innovative capabilities. DEL also recognizes solutions that establish strategic platforms with measurable business potential. As adoption grows, realized metrics can be reported in future reviews.
+
+
+
+8. How confident are you in these estimates?
+Answer
+
+
+The confidence in the engineering solution is high because the platform has been implemented. The financial estimates, however, are projections based on client assumptions and should be treated as directional until validated through production usage.
+
+
+
+9. What if adoption is low?
+Answer
+
+
+Actual business value depends on adoption. If usage is lower than expected, realized savings will also be lower. The projected estimates assume the intended business teams actively use the platform.
+
+
+
+10. What metrics will you track after deployment?
+Answer
+Possible KPIs include:
+
+Average contract search time
+Time to onboard a new contract
+Time spent on renewal reviews
+Number of manual document reviews avoided
+Number of AI-assisted contract queries
+User adoption rate
+User satisfaction
+Accuracy of extracted contract information
+
+
+11. Why didn't you calculate the savings yourselves?
+Answer
+
+
+Engineering teams typically don't own financial valuation. Business teams have access to labor costs, operational effort, licensing costs, and process baselines. Therefore, business value estimates are generally produced or validated by the client business stakeholders.
+
+
+
+12. Is this cost avoidance or cost savings?
+Answer
+
+
+Mostly cost avoidance, not direct cost savings.
+
+
+Reduced effort represents productivity gains.
+
+Avoiding a third-party platform is cost avoidance.
+
+Actual cost savings would require measurable reductions in spend or staffing, which have not yet been realized.
+
+
+This distinction is important because reviewers often ask it.
+
+
+13. What's the strongest reason this deserves DEL?
+Answer
+
+
+The value of this project extends beyond the projected financial estimates. It delivers a scalable AI-based contract intelligence capability that transforms how provider contracts are searched, analyzed, and understood. The solution reduces dependence on manual document review, provides source-grounded responses for greater trust, integrates with the existing AI ecosystem, and can be reused across multiple contract types and business teams. The projected business value indicates the opportunity, while the delivered technical capability is the primary achievement.
