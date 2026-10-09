@@ -1,0 +1,268 @@
+Data Engineering Interview Prep Checklist (2026)
+Oct 6, 2026 · @Anukul
+How to use this checklist
+Work the phases in order and tick items as you can explain and demonstrate them, not just recognise them. SQL, data modeling, and pipeline design decide most loops, so those phases carry the most weight; there is no weekly schedule, so pace each phase to your own time.
+Every item carries a priority tag:
+	• [P1] asked in nearly every loop (product companies, GCCs, banks).
+	• [P2] asked often, depending on the employer or stack.
+	• [P3] a differentiator or light reading; do it after P1 and P2.
+Order of work:
+	1. Phases 0 to 4 are the core. Finish all P1 items here before going deep on later phases.
+	2. Start system-design practice in Phase 2 and repeat it in every later phase. Design is the lowest-solve-rate round, so it should not wait until the end.
+	3. Build one running project (an e-commerce orders pipeline) and extend it phase by phase, so every concept attaches to something you built.
+	4. Phases 5 to 8 add streaming, lakehouse, AI pipelines, and finance-domain depth. Weight them by your target employers.
+	5. Phase 9 (coding, behavioral, project stories) runs alongside everything else from the start.
+Choose your target employers early because they change the weighting: Google-style loops weight algorithms and GCP-native design, Amazon splits technical and leadership principles roughly 50/50 and prefers AWS-native answers, and banks add audit, reconciliation, and access-control questions.
+Your starting point and plan focus
+You have six years across Databricks, Azure Data Factory and Synapse, and Informatica, so your gap is producing answers from memory under time pressure, not knowledge; this plan is weighted for that.
+	• Closed-book rule: attempt every problem in a blank editor with a timer, then check with AI or documentation. Never the other way round.
+	• Say it out loud: record yourself explaining each design and each story, then review the recording.
+	• Anchor stack: Azure plus Databricks (ADLS, Data Factory, Synapse, Databricks, Delta, Unity Catalog), with Snowflake as your second platform.
+	• Employer mix: you are targeting product companies, GCCs, banks and fintech, and consulting, so finish every P1 item before starting P2.
+	• No deadline: build confidence first. Do mock interviews early, including with employers you don't care about, to lower the stakes.
+	• Seniority: at six years, loops weight data modeling, pipeline design, and project depth most. Your payer-client work (medallion layers, a 700-feature wide table) is your main material.
+	• If time runs short, cut in this order: P3 items, then Phase 7 (AI), then the deeper parts of Phase 8, then Phase 5 depth. Never cut SQL, modeling, design, or project-story items.
+Deep-dive prep for your payer-client project
+	• [P1] Draw the end-to-end architecture from memory in 5 minutes
+	• [P1] Explain why a wide table with 700+ features, its trade-offs, and the alternatives (narrower marts, a feature store)
+	• [P1] Explain how incremental loads, deduplication, late data, and backfills worked
+	• [P1] Explain your data quality and reconciliation approach
+	• [P1] Give two performance or cost wins with before-and-after numbers
+	• [P1] Explain how sensitive health data was protected (access control, masking, audit)
+	• [P1] Say what you would do differently today
+	• [P2] Compare your past tools: Informatica vs. code-based ELT, and Data Factory vs. Airflow or Databricks Workflows
+Target: 50 LPA fixed
+Reported senior bands put 50 LPA fixed at the top of GCC pay (about 34-58 LPA) and Indian product companies (about 28-50 LPA), and in the middle of FAANG India (about 42-65 LPA), so it takes strong design and project-depth performance. Figures come from Intervue and Plugscale and are indicative, not survey data.
+	• Weight your employer list toward GCCs, product companies, FAANG India, and remote foreign roles; treat consulting and analytics firms as the fallback, since their reported bands are far lower.
+	• For this target, treat Spark internals, system design said aloud, Kafka and streaming, and production-incident stories as P1, whatever their tags say.
+	• Run several interview processes in parallel so you hold competing offers at the same time.
+	• [P1] Write down your target and walk-away fixed-pay numbers, and what variable pay or stock you would accept on top
+	• [P1] Practise stating your expectation as a fixed-pay figure, and ask recruiters how bonus and RSUs are structured
+	• [P2] Check your notice period and buyout rules so offer timing doesn't cost you leverage
+Phase 0: Foundations
+SQL and Python are in about 71% of data engineer postings, and every loop starts with them; this phase adds the coding-round basics that the earlier plan was missing.
+SQL
+	• [P1] Joins, including anti-joins and self-joins, plus conditional aggregation
+	• [P1] Window functions: ROW_NUMBER, RANK, DENSE_RANK, LAG, LEAD, running totals, moving averages
+	• [P1] CTEs and recursive CTEs
+	• [P1] Deduplication patterns (keep the latest row per key)
+	• [P1] Sessionization and gaps-and-islands problems (for example, sessions with no more than 30 minutes between events)
+	• [P1] Read a query plan and explain why a query is slow
+	• [P2] Warehouse-flavored SQL: UNNEST and STRUCT handling in BigQuery, MERGE, and semi-structured data in Snowflake
+Python
+	• [P1] File and JSON parsing with error handling
+	• [P1] pandas transformations and handling edge cases (nulls, duplicates, bad types)
+	• [P1] Calling APIs with pagination, retries, and rate limits
+	• [P2] Idempotent transformations and event-stream processing with state
+Data structures and algorithms
+	• [P1] Arrays, strings, and hash maps
+	• [P1] Sliding window and two-pointer patterns
+	• [P2] Heaps, sorting, and top-K problems
+	• [P2] Complexity analysis you can state out loud
+Tools and formats
+	• [P1] Linux shell basics and Git (branching, pull requests, resolving conflicts)
+	• [P1] OLTP vs. OLAP, and row vs. columnar storage
+	• [P1] File formats and when to use each: CSV, JSON, Avro, Parquet, ORC
+Done when: from a blank editor, you can solve a medium window-function problem in 15 minutes, a hash-map problem in 20, and a PySpark cleanup task in 25, explaining your approach as you go.
+Phase 1: Requirements and data modeling
+Data modeling is the second most-tested area after SQL, and one prep platform reports a solve rate of only 49% for it, so practice drawing and defending models out loud.
+	• [P1] Clarify requirements before designing: volume, velocity, latency, freshness, consumers, SLAs
+	• [P1] Decide batch vs. streaming from those requirements and justify it
+	• [P1] State the grain (one row per what?) before drawing any table
+	• [P1] Fact vs. dimension tables, star schema, and snowflake schema trade-offs
+	• [P1] Slowly changing dimensions (Types 1, 2, 3) and defend which one you chose
+	• [P1] Surrogate keys vs. business keys
+	• [P1] Normalization (1NF to 3NF) and when to denormalize
+	• [P2] Model a real product from scratch: ride-sharing, e-commerce marketplace, clickstream, payments
+	• [P2] Modeling late-arriving and out-of-order facts
+	• [P3] One Big Table and wide-table patterns, and when they beat a star schema
+	• [P3] Data Vault (hubs, links, satellites): read and recognise only; see the light-reading list
+Running project, step 1: design the orders star schema (orders, customers, products, dates) on paper first, with the grain and SCD choice written down.
+Done when: you can model a new product (for example ride-sharing) in 20 minutes, stating the grain first and defending one SCD choice, without notes.
+Phase 2: Ingestion and batch pipelines
+Batch ELT on one cloud stack is the backbone of most interviews and projects; this plan anchors on Azure plus Databricks because it builds on your experience, with AWS as the second option.
+Pipeline patterns
+	• [P1] Source types: databases, APIs, files, SaaS tools
+	• [P1] Full load vs. incremental load, using watermarks or high-water marks
+	• [P1] Merge/upsert logic and idempotency (a rerun must not create duplicates)
+	• [P1] ETL vs. ELT and when each fits
+	• [P1] Layers: landing/staging, cleaned, modeled
+	• [P1] Partitioning strategy (by date or key) and columnar file formats
+	• [P1] dbt: models, tests, incremental models, documentation
+One cloud stack (pick one and go deep)
+	• [P1] Azure path (your anchor): ADLS, Data Factory, Synapse, Databricks, Event Hubs
+	• [P2] AWS path: S3, Glue, EMR, Athena, Redshift, Lambda, Kinesis
+	• [P3] GCP path: BigQuery, Dataflow, Pub/Sub, Composer
+	• [P1] Know the managed-service trade-offs and cost model of your chosen stack
+Spark depth (beyond the basics)
+	• [P1] DataFrames, transformations vs. actions, lazy evaluation
+	• [P1] Narrow vs. wide dependencies and what causes a shuffle
+	• [P1] Join strategies: broadcast join vs. sort-merge join
+	• [P1] Data skew: how to detect it and fix it (salting, broadcast, adaptive query execution)
+	• [P1] Debug and fix an out-of-memory error on a large join
+	• [P2] Partition tuning, caching, and reading the Spark UI
+Design practice starts here
+	• [P1] Do your first two pipeline design walk-throughs, using the spine: requirements, sources, ingestion, storage, transform, quality, orchestration, serving, monitoring
+	• [P1] For each design, name failure modes without being asked: late data, schema drift, duplicates, backfills
+Running project, step 2: ingest orders, customers, and products into a warehouse; build staging tables, then the star schema from Phase 1, with incremental, idempotent loads.
+Done when: you can narrate an incremental, idempotent batch load end to end in 5 minutes, and explain a shuffle, a skew fix, and an out-of-memory fix without notes.
+Phase 3: Orchestration and engineering practice
+Airflow appears in about 29% of postings and CI/CD in about 30%, and interviewers expect you to explain retries, backfills, and dependencies concretely.
+	• [P1] Workflow DAGs: tasks, dependencies, scheduling, and idempotent task design
+	• [P1] One orchestrator in depth (Airflow, or Dagster/Prefect): operators, sensors, XComs, retries, SLAs
+	• [P1] Retries, timeouts, alerting on failure, and dead-letter handling
+	• [P1] Backfilling and reprocessing historical data safely
+	• [P1] Git workflow and automated tests for pipeline code
+	• [P2] CI/CD for data pipelines (for example Jenkins or GitHub Actions)
+	• [P2] Docker basics and config/secrets management
+	• [P2] Compliance-friendly logging in orchestration (who ran what, when, with which inputs)
+	• [P3] Infrastructure as code with Terraform (basics only)
+Running project, step 3: schedule the Phase 2 pipeline in Airflow with retries and failure alerts, then run a backfill for a past date range.
+Done when: you can explain how your DAG retries, backfills, and alerts, and what happens when a task fails halfway, in 5 minutes.
+Phase 4: Data quality, schema, and governance
+Data quality appears in about 43% of postings, and interviewers reward candidates who raise checks, lineage, and alerting before being asked.
+	• [P1] Validation checks: nulls, uniqueness, ranges, referential integrity, freshness, volume anomalies
+	• [P1] Tools: dbt tests, plus Great Expectations or Soda
+	• [P1] Decide what happens on failure: block, quarantine bad rows, or alert and continue
+	• [P1] Schema evolution and schema drift handling
+	• [P1] Monitoring and SLA alerting for freshness and volume
+	• [P2] Data contracts between producers and consumers
+	• [P2] Lineage and metadata (data catalog, OpenLineage, DataHub)
+	• [P2] Access control (RBAC), including writing GRANT statements for multi-tenant schemas
+	• [P2] PII masking, encryption, and audit logs
+	• [P3] Compliance awareness (GDPR, HIPAA)
+Running project, step 4: add quality tests to the pipeline, fail the run on bad data, and publish lineage and documentation.
+Done when: for any pipeline you describe, you name at least five quality checks and what happens on failure, without being asked.
+Phase 5: Streaming and CDC
+Kafka appears in about 17% of postings but is a staple at banks and large product companies, so learn the concepts and the failure semantics rather than every tool.
+	• [P1] Kafka concepts: topics, partitions, offsets, consumer groups, rebalancing
+	• [P1] Delivery semantics: at-most-once, at-least-once, exactly-once, and how idempotent writes get you effectively-once
+	• [P1] Event time vs. processing time, watermarks, and late-arriving data
+	• [P1] Windowing: tumbling, sliding, and session windows
+	• [P1] Processing out-of-order events to find the latest state per key
+	• [P1] Change Data Capture (for example Debezium): inserts, updates, deletes
+	• [P2] One stream processor: Spark Structured Streaming (or Flink)
+	• [P2] Checkpointing, fault tolerance, and replay
+	• [P2] Micro-batch vs. true streaming trade-offs
+	• [P2] Backpressure and consumer lag monitoring
+	• [P3] Cloud-native streaming (Kinesis, Pub/Sub, Event Hubs)
+Design practice: real-time ad click analytics, a payment events pipeline (latest status per transaction, excluding pending and failed), and a clickstream pipeline.
+Running project, step 5: capture changes from the orders database with CDC, push them through Kafka, and land them in the warehouse near real time.
+Done when: you can explain Kafka consumer groups, delivery semantics, and late-data handling in 10 minutes, and design a payment-events pipeline in 40.
+Phase 6: Lakehouse and a named warehouse platform
+Snowflake (about 31% of postings) and Databricks (about 29%) are now expected skills, and Delta Lake and Iceberg come up in bank and large-company loops.
+	• [P1] Data lake vs. warehouse vs. lakehouse, and when each fits
+	• [P1] Medallion layers (bronze, silver, gold) and what belongs in each
+	• [P1] One platform hands-on: Snowflake or Databricks (virtual warehouses/clusters, cost, performance tuning)
+	• [P1] Open table formats: Delta Lake and Iceberg (ACID transactions, schema evolution, time travel, compaction)
+	• [P2] Unified batch and streaming on one table format, instead of separate code paths
+	• [P2] Warehouse cost control: clustering/partitioning, result caching, auto-suspend
+	• [P3] Lambda vs. Kappa: know the definitions and why unified models are preferred today
+Running project, step 6: rebuild the pipeline as bronze, silver, and gold layers on a table format of your choice, with time-travel queries to debug a bad load.
+Databricks in production (builds on your notebook experience)
+	• [P1] Move notebook logic into tested Python modules and run it as Databricks Workflows/Jobs
+	• [P1] Unit tests for transformations and a CI/CD path from Git to the workspace
+	• [P1] Delta Lake features: MERGE, OPTIMIZE with Z-ordering or liquid clustering, VACUUM, schema evolution, time travel
+	• [P1] Unity Catalog: governance, lineage, access control, and row- and column-level security
+	• [P2] Auto Loader and Delta Live Tables (declarative pipelines) for incremental ingestion
+	• [P2] Cluster sizing, job clusters vs. all-purpose clusters, and cost monitoring
+	• [P2] Structured Streaming on Databricks as your first streaming project
+Done when: you can explain bronze, silver, and gold choices for a new dataset, and the cost and governance trade-offs, in 10 minutes without notes.
+Phase 7: AI data pipelines
+Generative AI and LLM skills went from near zero to about 9% of postings in a year, and AI-forward companies now ask RAG and vector-store design questions; treat this as an addition to the core, not a replacement for it.
+	• [P2] RAG pipeline architecture: offline (ingest, chunk, embed, store) and online (retrieve, re-rank, assemble the prompt)
+	• [P2] Chunking strategies and why content-aware chunking beats fixed-size chunks
+	• [P2] Embedding pipelines as ETL: idempotent batch upserts, refresh patterns (scheduled, triggered, TTL), and cost control
+	• [P2] Vector databases: HNSW vs. IVF trade-offs, metadata filtering, pgvector vs. a managed store
+	• [P2] Async embedding patterns: backpressure, rate limits, retries, and partial failures
+	• [P2] Hybrid search (vector plus keyword) and re-ranking
+	• [P3] Evaluation: faithfulness, answer relevance, context precision and recall, and LLM-as-judge limits
+	• [P3] Orchestrating LLM calls inside a normal pipeline (parse unstructured documents, then load structured results), with cost budgets
+	• [P3] Feature stores (offline vs. online) for ML pipelines
+Running project, step 7: add a small RAG ingestion branch (for example, product descriptions): chunk, embed, upsert idempotently into a vector store, and run a simple retrieval evaluation. Be ready to name the embedding model, chunk size, and vector store you used.
+Done when: you can sketch a RAG ingestion and retrieval pipeline in 10 minutes, naming your embedding model, chunk size, and vector store.
+Phase 8: Reliability, performance, cost, and finance-domain depth
+Observability appears in about 14% of postings but carries a salary premium, and banks expect you to tie every technical answer to audit, reconciliation, and SLAs.
+Reliability and performance
+	• [P1] Pipeline monitoring: latency, throughput, failure rate, freshness, and SLA/SLO definitions
+	• [P1] Incident handling: a root-cause walkthrough for a pipeline that failed overnight, and a runbook
+	• [P1] Data skew, shuffle tuning, and partition pruning (revisit from Phase 2)
+	• [P2] Logging and observability (Grafana, Prometheus, Datadog, or a data-observability tool)
+	• [P2] Cost optimization: right-size compute, avoid full scans, compaction, caching
+	• [P2] Scalability and fault-tolerance patterns: horizontal scaling, checkpointing, replication
+Finance and regulated-industry concerns (banks, fintech, GCCs)
+	• [P2] Why a backfill needs an audit trail, and how to log who changed what
+	• [P2] Reconciliation: reconciling pipeline output against the source system, and handling mismatches
+	• [P2] What a missed SLA before market open means and how it escalates
+	• [P2] CDC and automated reconciliation tools in a bank setting
+	• [P2] Design an API or extract under strict rate limits for transaction data
+	• [P3] Oracle PL/SQL, and Java or Scala if your target team uses them
+Done when: you can walk through a 3 a.m. pipeline failure from alert to root cause to fix to prevention in 10 minutes.
+Product sense, metrics, and statistics
+Flipkart and Swiggy guides list product metrics and statistics as question categories, and Morgan Stanley adds a case-study round, so cover this at a working level.
+	• [P2] Define core metrics precisely (DAU/MAU, retention, conversion, churn, GMV), with the grain and a SQL query for each
+	• [P2] Statistics basics: mean vs. median, percentiles, variance, sampling bias, confidence intervals, correlation vs. causation
+	• [P2] A/B testing basics: hypothesis, sample size, p-value, and common pitfalls
+	• [P2] "What would you measure?" questions: pick metrics for a feature and name the pipeline tables that feed them
+	• [P2] One timed case study: business scenario, then metrics, then data model and pipeline, then a recommendation
+	• [P3] Metric-definition SQL such as moving averages and join-size estimates
+Done when: you can define five metrics with their grain and SQL, and talk through one A/B test result, in 10 minutes.
+Phase 9: Interview readiness (run alongside every phase)
+This was the weakest part of the earlier plan: coding, behavioral rounds, and design practice carry real weight at Google (algorithms 30%, Googleyness 20%) and Amazon (about half leadership principles), so practice them from the start.
+SQL and coding practice
+	• [P1] Daily SQL practice: window functions, dedup, sessionization, second-most-recent order per customer
+	• [P1] Python and PySpark exercises: parse files, clean data, aggregate, handle bad records
+	• [P1] DSA problems with a data engineering flavor (hash maps, heaps, sliding windows)
+	• [P2] Timed practice with a shared editor, talking through your approach
+System design practice
+	• [P1] A repeatable answer structure: requirements, scale estimate, sources, ingestion, storage, transform, quality, orchestration, serving, monitoring, failure modes
+	• [P1] At least five full design walk-throughs out loud, for example clickstream analytics, payments events, ride-sharing, a document-processing pipeline, and real-time ad analytics
+	• [P1] In every design, raise late data, schema drift, deduplication, idempotency, and backfills without prompting
+	• [P2] Express each design in your target cloud's native services (AWS for Amazon-style loops, GCP for Google-style loops)
+	• [P2] One design for a regulated setting (audit trail, access control, reconciliation)
+	• [P2] One design that includes an AI/RAG component
+Behavioral and project stories
+	• [P1] Write 6 to 8 STAR stories with numbers: a failure, a conflict, a tight deadline, a debugging deep dive, a cost or performance win, a decision you changed
+	• [P1] Prepare follow-ups for each story: what did you try first that didn't work, and what would you do differently
+	• [P2] Map your stories to Amazon's leadership principles (Dive Deep, Ownership, Deliver Results, Earn Trust, Insist on the Highest Standards)
+	• [P2] Prepare for a Googleyness-style round: comfort with ambiguity, collaboration, intellectual humility
+Portfolio and core comparisons
+	• [P1] A public repository with your running project: README, architecture diagram, tests, and how to run it
+	• [P1] Explain every project end to end, including why each design choice was made and what you'd change
+	• [P1] Be able to compare out loud: batch vs. streaming, ETL vs. ELT, star vs. snowflake, warehouse vs. lakehouse
+	• [P1] Scenario answers: duplicates after a rerun, schema change upstream, late data, a failed 3 a.m. run, a backfill gone wrong
+	• [P2] Mock interviews with another person or a timed recording for each round type
+Done when: you have completed five recorded design walk-throughs and at least three mock interviews, and can tell each of your stories in under 3 minutes.
+Remote roles for foreign employers
+Remote roles from India usually pay on an India-adjusted scale, not the US scale; one 2026 source puts senior remote backend developers at about 28-48 LPA, and I found no reliable data for India-based remote data engineers specifically.
+	• [P2] Understand the three hiring models: employer of record (EOR), independent contractor, and the employer's own Indian entity (overview)
+	• [P2] Prefer EOR or Indian-entity employment if you want provident fund, gratuity, and notice protections; contractor roles carry classification risk and don't include those benefits by default
+	• [P2] Check any contract for statutory benefits, notice and termination terms, IP assignment, and who handles tax; have a chartered accountant or lawyer review it before you sign
+	• [P2] Ask a tax professional how the India-US tax treaty and remittance rules apply to your payment route
+	• [P2] Prepare for remote-style questions: working across time zones, written communication, working independently, and handling a production incident without a team nearby
+	• [P2] Build an async-friendly portfolio: README, architecture diagram, and a short design document for each project
+	• [P3] For Singapore employers, ask each one for its India pay scale; locally reported pay for 5-10 years is S$60,000-120,000 per year (Morgan McKinley), but remote-from-India offers are typically set differently
+Light reading only
+These topics rarely decide an interview, so read one article on each and move on; revisit only if a target employer's job description names them.
+	• [P3] Data Vault modeling (hubs, links, satellites)
+	• [P3] Lambda vs. Kappa architecture (know the definitions; unified batch/stream is the current preference)
+	• [P3] Hadoop ecosystem (HDFS, Hive, MapReduce); some Flipkart and Swiggy guides still mention it
+	• [P3] Reverse ETL tools (Census, Hightouch)
+	• [P3] Non-relational store types: document, key-value, wide-column, graph, time-series, search
+	• [P3] Terraform beyond the basics
+Sources
+The priorities above come from a May 2026 analysis of 6,877 postings and interview-prep guides; most guides are from prep sites, so treat percentages as directional.
+	• Data Engineer Skills Companies Want in 2026: 6,877-Posting Analysis
+	• Data Engineering Interview Prep (2026): Rounds, Questions, Prep Plan
+	• Data Engineering Interview Prep (2026): What Actually Matters
+	• Data Engineer Jobs in India 2026: Skills Guide
+	• JPMorganChase Data Engineer Interview Guide
+	• Morgan Stanley Data Engineer Guide (2026)
+	• Google Data Engineer Interview Guide (2026)
+	• Amazon Data Engineering Interview Guide
+	• Flipkart Data Engineer Interview Guide
+	• Swiggy Data Engineer Interview Guide
+	• Top Data Engineering Interview Questions (aced.io)
+	• 15 Data Engineering Skills You Need in 2026 (Dataquest)
+	• AI Data Engineer Interview: What's Actually Being Tested
+	• Why Senior Data Engineers Are Failing 2026 Tech Screens
